@@ -1,0 +1,43 @@
+/* Design tokens. Dark theme is the only theme. */
+
+:root {
+  /* ── Accent (primary action / focus) ─────────────────────────────── */
+  --accent: #2563eb;
+  --accent-fg: #ffffff;
+  --accent-soft: rgba(37, 99, 235, 0.18);
+
+  /* ── Surfaces ────────────────────────────────────────────────────── */
+  --bg: #0f172a;
+  --bg-subtle: #1e293b;
+  --bg-elevated: #243246;
+
+  /* ── Foreground ──────────────────────────────────────────────────── */
+  --fg: #f1f5f9;
+  --fg-muted: #94a3b8;
+  --border: #334155;
+
+  /* ── Warning (amber — chip-local validation issues, NOT toggle) ──── */
+  --warning: #fbbf24;
+  --warning-bg: #422006;
+  --warning-soft: rgba(251, 191, 36, 0.18);
+
+  /* ── Tip (cyan — secondary accent, OR groups, info banners) ──────── */
+  --tip: #38bdf8;
+  --tip-bg: #082f49;
+  /* Cyan at 40% alpha — used for OR-group framing, dashed alternates,
+     and any other "tip palette but quieter" surface. */
+  --tip-soft: rgba(56, 189, 248, 0.4);
+
+  /* ── Type ────────────────────────────────────────────────────────── */
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* ── Layout ──────────────────────────────────────────────────────── */
+  --page-max-width: 1080px;
+  --gap: 20px;
+
+  /* ── Elevation ───────────────────────────────────────────────────── */
+  /* Card hover lift — small drop. */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  /* Floating overlay (popover, drawer) — pronounced lift. */
+  --shadow-lg: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 4px 8px -2px rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,360 @@
+/* Facebook form — visible only when the Facebook engine is active.
+   The bootstrap toggles `body.engine-facebook` and shows/hides the chip
+   section vs `#facebook-form` accordingly. */
+
+/* === Visually-hidden helper === */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* === Engine show/hide === */
+#facebook-form,
+#facebook-explainer { display: none; }
+body.engine-facebook #facebook-form { display: block; }
+body.engine-facebook #facebook-explainer { display: block; margin-bottom: 12px; }
+body.engine-facebook .chip-section,
+body.engine-facebook #idiom-panel,
+body.engine-facebook #warnings-region,
+body.engine-facebook #tips-region,
+body.engine-facebook #welcome-panel,
+body.engine-facebook #undo-btn { display: none !important; }
+
+body.engine-facebook main { padding-bottom: 140px; }
+
+/* === Form shell === */
+.fb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: var(--gap);
+}
+
+/* === Explainer (click-anywhere-to-dismiss how-this-works panel) ===
+   Mirrors .welcome-panel: leading-edge accent inset + tinted fill so it
+   reads as an inline note, not a section header. The whole panel is the
+   dismiss control — clicking anywhere collapses it for the session. */
+.fb-form-explainer {
+  position: relative;
+  margin: 0;
+  padding: 12px 16px;
+  border: 0;
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--fg);
+  cursor: pointer;
+  transition: background 120ms ease, filter 120ms ease;
+}
+.fb-form-explainer:hover { background: var(--accent-soft-hover, var(--accent-soft)); filter: brightness(1.06); }
+.fb-form-explainer:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fb-form-explainer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.fb-form-explainer-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.fb-form-explainer-dismiss {
+  flex: 0 0 auto;
+  color: var(--fg-muted);
+  font-size: 13px;
+  padding: 2px 8px;
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 2px;
+}
+.fb-form-explainer:hover .fb-form-explainer-dismiss {
+  color: var(--fg);
+  text-decoration-color: currentColor;
+}
+.fb-form-explainer-intro {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--fg-muted);
+}
+.fb-form-explainer-steps {
+  margin: 0;
+  padding-inline-start: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-muted);
+}
+.fb-form-explainer-steps li { padding-inline-start: 2px; }
+
+/* === Attribution footer — always visible, small, muted. === */
+.fb-form-attribution {
+  margin: 4px 0 0 0;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--border);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--fg-muted);
+  text-align: center;
+}
+
+/* === Categories: segmented bar === */
+.fb-form-categories {
+  display: flex;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+.fb-form-categories .fb-form-legend { display: none; }
+
+.fb-cat-grid {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.fb-cat-btn {
+  padding: 6px 14px;
+  min-height: 34px;
+  border: 0;
+  border-inline-end: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.fb-cat-btn:last-child { border-inline-end: 0; }
+.fb-cat-btn:hover {
+  background: var(--bg-subtle);
+  color: var(--fg);
+}
+.fb-cat-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.fb-cat-btn[aria-checked="true"],
+.fb-cat-btn.is-active {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.fb-cat-label { font-size: 13px; font-weight: 500; }
+.fb-cat-hint { display: none; }
+
+/* === Keyword input — its own card. The keyword is the only required input
+   and must read as a distinct zone, not just another row. === */
+.fb-form-keyword {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  margin-block: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-subtle);
+}
+.fb-form-keyword .fb-form-legend {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: 0.01em;
+}
+.fb-form-keyword .fb-form-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--fg-muted);
+}
+
+.fb-keyword-input {
+  width: 100%;
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 14px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  box-sizing: border-box;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.fb-keyword-input::placeholder { color: var(--fg-muted); opacity: 0.7; }
+.fb-keyword-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22);
+}
+
+
+/* === Sections container (single bordered block) === */
+.fb-form-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.fb-form-section {
+  padding: 8px 12px;
+  display: grid;
+  grid-template-columns: minmax(110px, max-content) 1fr;
+  align-items: start;
+  gap: 12px;
+  min-height: 44px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-block-end: 1px solid var(--border);
+}
+.fb-form-section:last-child { border-block-end: 0; }
+.fb-form-section:focus-within {
+  background: var(--bg-subtle);
+  box-shadow: none;
+}
+
+.fb-form-sections .fb-form-legend {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  align-self: center;
+  padding-block: 6px;
+}
+
+/* === Pills (radio rows + toggle) === */
+.fb-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.fb-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.fb-pill:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent);
+  color: var(--fg);
+}
+.fb-pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.fb-pill[aria-checked="true"],
+.fb-pill[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* === Date row === */
+.fb-date-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.fb-date-label {
+  font-size: 12px;
+  min-width: 24px;
+  color: var(--fg-muted);
+}
+.fb-date-input {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 6px 10px;
+  min-height: 32px;
+  min-width: 140px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  color-scheme: dark;
+}
+.fb-date-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.16);
+}
+.fb-date-row .date-trigger-wrap { display: inline-flex; align-items: center; }
+.fb-date-row .date-trigger {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 6px 24px 6px 10px;
+  min-height: 32px;
+  min-width: 140px;
+  border-radius: 6px;
+}
+.fb-date-row .date-trigger:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.16);
+}
+
+/* === Narrow viewport === */
+@media (max-width: 700px) {
+  .fb-form-section {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .fb-form-keyword { grid-template-columns: 1fr; }
+  .fb-cat-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+  .fb-cat-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 6px 4px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .fb-cat-label { font-size: 12px; }
+}
+
+/* === Preview tweaks: when Facebook is active the box holds a URL,
+   not a query. Word-break for long URLs and slightly smaller font. === */
+body.engine-facebook .preview-box:not(.empty) {
+  word-break: break-all;
+  font-size: 14px;
+  line-height: 1.55;
+}

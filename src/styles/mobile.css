@@ -1,0 +1,299 @@
+/* ===== Mobile / narrow-viewport overrides =====
+   Imported LAST so cascade-order overrides live next to each other in one
+   file. The desktop experience in tokens.css / base.css / chips.css /
+   idioms.css / facebook.css is untouched at >600px. */
+
+/* === Larger tap targets on coarse-pointer devices === */
+@media (pointer: coarse) {
+  .engine-toggle button,
+  .lang-toggle button {
+    min-height: 40px;
+    padding: 8px 14px;
+  }
+  .normalize-info-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+/* === ≤600px: phone-class viewports === */
+@media (max-width: 600px) {
+  /* Shell: tighter gutters so the workspace gets every available pixel. */
+  .app {
+    max-width: calc(100vw - 16px);
+    padding: 12px 8px max(12px, env(safe-area-inset-bottom));
+  }
+
+  /* ----- Header ----- */
+  .app-header {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+  /* The desktop rule sets flex: 1 1 240px on the titles block so the
+     subtitle wraps inside the row. Once we flip to column layout that
+     240px becomes a vertical flex-basis and balloons the header. Reset
+     the flex sizing so the title shrinks to its content. */
+  .app-header-titles {
+    flex: 0 0 auto;
+    gap: 2px;
+  }
+  .app-title { font-size: 19px; line-height: 1.2; }
+  /* Welcome blurb covers the same ground in fewer pixels — drop the
+     subtitle so the header doesn't push the composer off-screen. */
+  .app-subtitle { display: none; }
+
+  /* Controls strip: two visible rows instead of one horizontally-scrollable
+     row. Row 1 = engine toggle (full-width, 3 equal buttons). Row 2 =
+     language toggle + normalize toggle. Every control is reachable
+     without hidden swipe. The "محرك البحث" / "اللغة" prefix labels are
+     dropped — the toggles are self-explanatory at this width and the
+     labels would force a third row. */
+  .app-controls {
+    width: 100%;
+    padding: 8px;
+    gap: 8px;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .control-label { display: none; }
+
+  /* Engine toggle takes its own row and stretches to fill it. Each
+     button gets equal share so the segmented control reads at a glance. */
+  .control-group:has(.engine-toggle) {
+    flex: 1 1 100%;
+  }
+  .engine-toggle {
+    display: flex;
+    width: 100%;
+  }
+  .engine-toggle button {
+    flex: 1 1 0;
+    white-space: nowrap;
+    padding: 9px 8px;
+    font-size: 13px;
+    min-width: 0;
+  }
+
+  /* Row 2: language toggle on the leading edge, normalize toggle on the
+     trailing edge. Both visible without scroll. */
+  .control-group:has(.lang-toggle) { flex: 0 0 auto; }
+  .control-group-normalize {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    margin-inline-start: auto;
+  }
+  .lang-toggle button {
+    white-space: nowrap;
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+
+  /* ----- Welcome blurb ----- */
+  .welcome-panel { padding: 8px 10px; margin-bottom: 10px; }
+  .welcome-panel p { font-size: 13px; line-height: 1.5; }
+  .welcome-panel kbd { font-size: 11px; }
+
+  /* ----- Chip section + composer ----- */
+  .chip-section {
+    padding: 10px;
+    gap: 8px;
+  }
+  .chip-area { padding: 6px; min-height: 40px; }
+  /* iOS zooms text inputs <16px on focus. Floor every editable to 16px. */
+  .composer-input {
+    font-size: 16px;
+    padding: 12px 14px;
+  }
+  /* Chip-text grows with content so multi-word phrases like "وزارة
+     الداخلية" don't get squeezed into a 72px column and break
+     character-by-character. overflow-wrap: anywhere keeps very long
+     single tokens from blowing past the chip-area edge. */
+  .chip-text {
+    font-size: 16px;
+    min-width: 72px;
+    flex: 1 1 auto;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  /* The per-chip "+أو" and "ليس" handles are quality-of-life on desktop
+     but at 375w they overflow the chip-area frame and clip. The same
+     actions are reachable via the composer (leading "-" commits a NOT
+     chip; Shift+Enter starts an OR group; the chip's warning-glyph
+     popover offers a one-tap "negate" fix). Hide on mobile to recover
+     ~80px of chip width. */
+  .chip-or-handle,
+  .chip-not-handle { display: none; }
+  /* Once a chip is in an OR group the trailing "+ بديل آخر" button is
+     the add-affordance — keep that one available on mobile. */
+  .chip-or-group .chip-or-add { display: inline-flex; }
+  .composer-btn { padding: 10px 12px; font-size: 15px; }
+
+  /* ----- Sticky preview + action row ----- */
+  .preview-section.preview-section-sticky {
+    margin-top: 14px;
+    padding-top: 8px;
+    /* Respect iPhone home-indicator inset. */
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .preview-section-sticky .preview-box {
+    font-size: 13.5px;
+    padding: 10px 12px;
+    min-height: 52px;
+    /* Cap the preview's height so a long query can't grow the sticky
+       region into a half-screen wall. The box still scrolls internally
+       for very long strings. */
+    max-height: 84px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Two-row action grid: search dominates row 1 (the only primary CTA);
+     copy + reset share row 2 with reset visually demoted. Undo collapses
+     to an icon-only ghost in the search row's trailing edge. */
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas:
+      "search search undo"
+      "copy   copy   reset";
+    gap: 8px;
+    margin-top: 10px;
+  }
+  #search-btn {
+    grid-area: search;
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+  #copy-btn {
+    grid-area: copy;
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  #reset-btn {
+    grid-area: reset;
+    width: 100%;
+    padding: 10px 8px;
+    font-size: 13px;
+    min-width: 0;
+    opacity: 0.85;
+  }
+  #undo-btn {
+    grid-area: undo;
+    width: 100%;
+    min-width: 0;
+    padding: 8px 4px;
+    font-size: 13px;
+  }
+  /* When undo is disabled (the common state), let it visually disappear
+     so the search button reads as full-width-feeling. */
+  #undo-btn:disabled { opacity: 0.35; }
+
+  /* ----- Idiom panel ----- */
+  .idiom-panel-pill {
+    padding: 12px 12px;
+    gap: 8px;
+  }
+  .idiom-panel-pill-title { font-size: 13px; }
+  .idiom-panel-pill-count { font-size: 12px; padding: 2px 8px; }
+
+  .idiom-panel-header {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  /* Title takes a full row so search + filters get the next two rows
+     instead of squishing into one line and visually fusing. */
+  .idiom-panel-header-title {
+    flex: 1 1 100%;
+    font-size: 13px;
+  }
+  .idiom-panel-search {
+    flex: 1 1 100%;
+    min-width: 0;
+    height: 36px;
+    /* 14px floor would still trigger iOS zoom — keep at 16px on inputs. */
+    font-size: 16px;
+  }
+  .idiom-panel-descriptions-toggle {
+    flex: 0 0 auto;
+    font-size: 12px;
+    padding: 4px 10px;
+    min-height: 32px;
+  }
+  .idiom-panel-close {
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+  }
+
+  /* Group filter chips: horizontal scroll strip with edge fade so the
+     user can see there's more without breaking layout. */
+  .idiom-panel-group-filter {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 0;
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 16px,
+      #000 calc(100% - 16px),
+      transparent 100%
+    );
+  }
+  .idiom-panel-group-filter::-webkit-scrollbar { display: none; }
+  .idiom-panel-group-chip {
+    flex-shrink: 0;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  /* Body: a touch more breathing room on mobile because the title wraps
+     and the inspector is generally taller-feeling at narrow widths. */
+  .idiom-panel-body {
+    max-height: min(70vh, 540px);
+    padding: 10px 10px 12px;
+  }
+
+  /* ----- Facebook form ----- */
+  body.engine-facebook main { padding-bottom: max(140px, calc(140px + env(safe-area-inset-bottom))); }
+  .fb-form-section { padding: 12px 14px; }
+  .fb-form-legend { font-size: 13px; }
+}
+
+/* === ≤340px: tightest viewports (small Android, fold-style devices) ===
+   iPhone-class (375w) keeps the 3-area grid; only sub-340 screens drop
+   to a single-column action stack. */
+@media (max-width: 340px) {
+  .app { padding: 10px 6px max(10px, env(safe-area-inset-bottom)); }
+  .app-title { font-size: 17px; }
+
+  /* Drop the "محرك البحث" / "اللغة" prefix labels — the toggles are
+     self-explanatory at this width and the labels eat ~50px each. */
+  .control-label { display: none; }
+
+  .normalize-toggle { font-size: 12px; }
+
+  /* Tightest viewport: action row collapses to one column. Search stays
+     dominant; copy and reset stack underneath, undo hides. */
+  .action-row {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "search"
+      "copy"
+      "reset";
+  }
+  #undo-btn { display: none; }
+
+  .idiom-panel-pill-title { font-size: 12px; }
+}

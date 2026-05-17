@@ -1,0 +1,320 @@
+/* Global base styles. Per-field rules live in styles/fields.css for now;
+   Phase 3 will split that file into per-field co-located CSS. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { color-scheme: dark; }
+body {
+  font-family: "Segoe UI", Tahoma, "Geeza Pro", "Arabic Typesetting", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ===== App shell =====
+   Single centered column capped at --page-max-width. The floor keeps
+   16px gutters on narrow viewports so content never touches the edge. */
+.app {
+  max-width: min(var(--page-max-width), calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+
+/* ===== Header =====
+   Single-row layout at laptop widths: title block on the leading edge
+   (top-right in RTL), framed controls strip on the trailing edge
+   (top-left). flex-wrap means the strip drops below the title on narrow
+   viewports without extra rules. */
+.app-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.app-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* Take remaining space alongside the controls strip and let the long
+     subtitle wrap inside, instead of forcing the strip onto a new row. */
+  flex: 1 1 240px;
+  min-width: 0;
+}
+.app-title { margin: 0; font-size: 26px; }
+.app-subtitle { margin: 0; color: var(--fg-muted); font-size: 15px; }
+
+.app-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 8px 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  /* Hold natural size on wide viewports (so the title block shrinks
+     first), but allow shrinking on narrow viewports so the inner
+     control-groups wrap onto multiple rows instead of overflowing. */
+  flex: 0 1 auto;
+}
+.control-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.control-label {
+  font-size: 12px;
+  color: var(--fg-muted);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.engine-toggle, .lang-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); }
+.engine-toggle button, .lang-toggle button {
+  background: transparent; color: var(--fg-muted); border: 0;
+  padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer;
+  min-height: 32px;
+}
+.engine-toggle button[aria-pressed="true"], .lang-toggle button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.engine-toggle button:focus-visible, .lang-toggle button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.normalize-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg-muted); }
+.normalize-toggle input { accent-color: var(--accent); }
+.normalize-info-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--fg-muted);
+  width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+  font-size: 12px; line-height: 1; padding: 0;
+  min-width: 26px; min-height: 26px;
+}
+.normalize-info-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.normalize-info-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 10;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  color: var(--fg-muted);
+  min-width: 280px;
+  max-width: 360px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+.normalize-info-panel[hidden] { display: none; }
+
+/* ===== Fields container ===== */
+.fields-container { display: flex; flex-direction: column; gap: var(--gap); }
+
+/* ===== Field generic styles ===== */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.field input[type="text"], .field input[type="number"], .field input[type="date"], .field select, .field textarea {
+  width: 100%; padding: 10px 12px;
+  font: inherit; font-size: 16px;
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 6px;
+}
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent);
+}
+.field-help { margin: 0; color: var(--fg-muted); font-size: 14px; }
+
+/* ===== Operator badge ===== */
+.op-badge {
+  font-family: var(--mono); font-size: 12px;
+  background: var(--bg-subtle); color: var(--fg-muted);
+  padding: 2px 6px; border-radius: 4px;
+  direction: ltr; unicode-bidi: isolate;
+}
+
+/* ===== Quote toggle (per-field exact-phrase checkbox) ===== */
+.quote-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--fg-muted); }
+.quote-toggle input { accent-color: var(--accent); }
+
+/* ===== Per-field clear button (×) ===== */
+.field-clear-btn {
+  background: transparent; border: 0; color: var(--fg-muted);
+  cursor: pointer; font-size: 18px; line-height: 1; padding: 6px 10px;
+  align-self: flex-start; min-width: 36px; min-height: 36px;
+}
+.field-clear-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.field-clear-btn[hidden] { display: none; }
+
+/* ===== Live query preview ===== */
+.preview-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+.preview-heading { margin: 0 0 8px 0; font-size: 15px; color: var(--fg-muted); }
+/* Sticky preview box — tightened from 17px / 96px floor so it reads as
+   the *output* of the composer rather than a co-equal twin. The box still
+   flexes upward for long queries; we only shrink the empty / short-query
+   floor so it doesn't dominate. */
+.preview-box {
+  direction: ltr; unicode-bidi: isolate;
+  font-family: var(--mono); font-size: 16px;
+  background: var(--bg-subtle); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; min-height: 72px;
+  white-space: pre-wrap; word-break: break-word;
+  text-align: left;
+}
+.preview-box.empty { color: var(--fg-muted); }
+
+/* ===== Action row (Copy / Search / Reset) =====
+   Four button tiers carry the actual hierarchy of the actions:
+     btn-primary   — solid accent; the strongest CTA in any region (Search, Commit).
+     btn-emphasis  — tinted accent; strong but not strongest (Copy).
+     btn-secondary — outlined ghost; default for everything non-primary (Undo).
+     btn-danger    — outlined warning; destructive intent visible at a glance (Reset). */
+.action-row { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.btn-primary {
+  background: var(--accent); color: var(--accent-fg);
+  border: 1px solid var(--accent); padding: 12px 20px; font: inherit; font-size: 16px;
+  border-radius: 8px; cursor: pointer;
+  min-height: 44px; min-width: 140px;
+}
+.btn-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-primary:disabled { background: var(--border); color: var(--fg-muted); border-color: var(--border); cursor: not-allowed; }
+.btn-emphasis {
+  background: var(--accent-soft); color: var(--fg);
+  border: 1px solid var(--accent); padding: 12px 20px; font: inherit; font-size: 16px;
+  border-radius: 8px; cursor: pointer;
+  min-height: 44px; min-width: 140px;
+}
+.btn-emphasis:hover:not(:disabled) { background: rgba(37, 99, 235, 0.28); }
+.btn-emphasis:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-emphasis:disabled { background: transparent; color: var(--fg-muted); border-color: var(--border); cursor: not-allowed; }
+.btn-secondary {
+  background: transparent; color: var(--fg);
+  border: 1px solid var(--border); padding: 12px 20px; font: inherit; font-size: 15px;
+  border-radius: 8px; cursor: pointer;
+  min-height: 44px;
+}
+.btn-secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn-secondary:disabled { color: var(--fg-muted); border-color: var(--border); cursor: not-allowed; opacity: 0.6; }
+.btn-danger {
+  background: transparent; color: var(--warning);
+  border: 1px solid var(--warning); padding: 12px 20px; font: inherit; font-size: 15px;
+  border-radius: 8px; cursor: pointer;
+  min-height: 44px;
+}
+.btn-danger:hover { background: rgba(251, 191, 36, 0.08); }
+.btn-danger:focus-visible { outline: 2px solid var(--warning); outline-offset: 2px; }
+
+/* ===== Version marker =====
+   Burned-in build-time version stamp at the bottom of the app. The sticky
+   preview floats above it during scroll; on scroll-to-bottom the preview
+   releases and the marker shows in normal flow. Intentionally minimal so it
+   never competes with the preview for attention. */
+.app-version {
+  margin-top: 16px;
+  padding: 8px 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  text-align: center;
+  opacity: 0.7;
+  user-select: text;
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--fg); color: var(--bg);
+  padding: 10px 18px; border-radius: 8px; font-size: 15px;
+  pointer-events: none; opacity: 0; transition: opacity 200ms;
+}
+.toast.visible { opacity: 1; }
+
+/* ===== Warnings & tips containers ===== */
+.warnings-region, .tips-region { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.warning, .tip {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 10px 12px; border-radius: 6px; font-size: 14px;
+}
+.warning { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
+.tip { background: var(--tip-bg); color: var(--tip); border: 1px solid var(--tip); }
+
+.tip-dismiss-btn {
+  margin-inline-start: auto;
+  background: transparent; border: 0; color: inherit;
+  cursor: pointer;
+  font-size: 16px; line-height: 1;
+  min-width: 36px; min-height: 36px;
+  padding: 4px 8px; vertical-align: middle;
+}
+.tip-dismiss-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* ===== Welcome panel (Beginner only) =====
+   Demoted from a workspace-weight card to a single-line in-flow blurb so
+   the chip section becomes the visual anchor on first paint. The "إخفاء"
+   button sits inline at the trailing edge of the sentence. A faint
+   leading-edge accent inset and tinted fill mark it as an inline note
+   rather than a section bar. */
+.welcome-panel {
+  margin: 0 0 12px 0;
+  padding: 10px 14px;
+  border: 0;
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent-soft);
+  cursor: pointer;
+}
+.welcome-panel:hover { background: var(--accent-soft-hover, var(--accent-soft)); filter: brightness(1.08); }
+.welcome-panel p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-muted);
+}
+.welcome-panel kbd {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-subtle);
+  color: var(--fg);
+  margin: 0 2px;
+}
+.welcome-close-btn {
+  background: transparent; border: 0; color: var(--fg-muted);
+  cursor: pointer; font-size: 13px; padding: 2px 6px;
+  border-radius: 4px; margin-inline-start: 6px;
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 2px;
+}
+.welcome-close-btn:hover { color: var(--fg); text-decoration-color: currentColor; }
+.welcome-close-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+body.welcome-collapsed .welcome-panel { display: none; }
+
+/* ===== Templates row ===== */
+.templates-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-bottom: 24px;
+}
+@media (max-width: 600px) { .templates-row { grid-template-columns: 1fr; } }
+
+.template-btn {
+  background: var(--bg); color: var(--fg);
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 14px; text-align: start; cursor: pointer;
+  font: inherit; min-height: 88px;
+  display: flex; flex-direction: column; gap: 6px;
+  transition: border-color 150ms, background 150ms;
+}
+.template-btn:hover { border-color: var(--accent); background: var(--bg-subtle); }
+.template-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.template-btn-title { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+.template-btn-icon { font-size: 18px; line-height: 1; }
+.template-btn-subtitle { color: var(--fg-muted); font-size: 13px; line-height: 1.5; }
+

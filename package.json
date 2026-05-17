@@ -1,0 +1,27 @@
+{
+  "name": "search-maker-jp",
+  "version": "1.0.0",
+  "description": "Japanese Boolean Query Builder — chip-based interactive Google / X / Facebook / Yahoo! Japan search composer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && cp dist/index.html dist/search_maker_jp.html && touch dist/.nojekyll",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhngyn/search-maker-jp.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bhngyn/search-maker-jp/issues"
+  },
+  "homepage": "https://github.com/bhngyn/search-maker-jp#readme",
+  "devDependencies": {
+    "marked": "^18.0.3",
+    "puppeteer": "^24.43.0",
+    "vite": "^8.0.11",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

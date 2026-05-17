@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id="app-title-meta">検索クエリビルダー</title>
+<script type="module" src="./main.js"></script>
+</head>
+<body class="lang-ja">
+<div class="app">
+
+  <header class="app-header">
+    <div class="app-header-titles">
+      <h1 class="app-title" id="app-title"></h1>
+      <p class="app-subtitle" id="app-subtitle"></p>
+    </div>
+    <div class="app-controls" role="group" aria-label="ツール設定">
+      <div class="control-group">
+        <span class="control-label" id="engine-control-label"></span>
+        <div class="engine-toggle" role="group" id="engine-toggle-group" aria-label="">
+          <button id="engine-btn-google" type="button" aria-pressed="true">Google</button>
+          <button id="engine-btn-x" type="button" aria-pressed="false"></button>
+          <button id="engine-btn-facebook" type="button" aria-pressed="false">Facebook</button>
+          <button id="engine-btn-yahoojp" type="button" aria-pressed="false">Yahoo! Japan</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label" id="lang-control-label"></span>
+        <div class="lang-toggle" role="group" id="lang-toggle-group" aria-label="">
+          <button id="lang-btn-ja" type="button" aria-pressed="true"></button>
+          <button id="lang-btn-en" type="button" aria-pressed="false"></button>
+        </div>
+      </div>
+      <div class="control-group control-group-normalize">
+        <div class="normalize-toggle">
+          <label>
+            <input type="checkbox" id="normalize-toggle-input">
+            <span id="normalize-label-text"></span>
+          </label>
+          <button type="button" id="normalize-info-btn" class="normalize-info-btn" aria-expanded="false" aria-controls="normalize-info-panel" title="">i</button>
+        </div>
+        <div id="normalize-info-panel" class="normalize-info-panel" hidden></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="facebook-explainer" aria-labelledby="fb-explainer-title"></section>
+
+    <section id="welcome-panel" class="welcome-panel" aria-labelledby="welcome-heading">
+      <p id="welcome-heading">
+        <span id="welcome-blurb"></span>
+        <button type="button" class="welcome-close-btn" id="welcome-close-btn" aria-label=""></button>
+      </p>
+    </section>
+
+    <section id="idiom-panel" class="idiom-panel" data-state="closed" data-descriptions="hidden">
+      <button class="idiom-panel-pill" type="button" aria-expanded="false" aria-controls="idiom-panel-body">
+        <span class="idiom-panel-pill-icon">📚</span>
+        <span class="idiom-panel-pill-title" id="idiom-panel-pill-title"></span>
+        <span class="idiom-panel-pill-count">10 レシピ</span>
+        <span class="idiom-panel-pill-chevron" aria-hidden="true">▼</span>
+      </button>
+      <div class="idiom-panel-header" hidden>
+        <span class="idiom-panel-header-title">📚 検索レシピ集</span>
+        <button class="idiom-panel-descriptions-toggle" type="button" aria-pressed="false">📖 説明</button>
+        <button class="idiom-panel-close" type="button" aria-label="閉じる">▲</button>
+      </div>
+      <div class="idiom-panel-body" id="idiom-panel-body" role="region" aria-label="検索レシピ集" hidden></div>
+    </section>
+
+    <section class="chip-section" aria-labelledby="chip-section-heading">
+      <h2 id="chip-section-heading"></h2>
+      <div id="chip-area"></div>
+      <aside id="chip-toolbar" hidden></aside>
+      <div id="composer"></div>
+    </section>
+
+    <section id="facebook-form" aria-labelledby="facebook-form-heading">
+      <h2 id="facebook-form-heading" class="sr-only"></h2>
+    </section>
+
+    <div id="warnings-region" class="warnings-region" aria-live="polite"></div>
+    <div id="tips-region" class="tips-region" aria-live="polite"></div>
+
+    <section class="preview-section preview-section-sticky">
+      <h2 class="preview-heading" id="preview-heading"></h2>
+      <div id="preview-box" class="preview-box empty" dir="ltr" aria-live="polite"></div>
+      <div class="action-row">
+        <button id="copy-btn" class="btn-emphasis" type="button" disabled></button>
+        <button id="search-btn" class="btn-primary" type="button" disabled></button>
+        <button id="undo-btn" class="btn-secondary" type="button" disabled aria-keyshortcuts="Control+Z Meta+Z"></button>
+        <button id="reset-btn" class="btn-danger" type="button"></button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-version" id="app-version" aria-label=""></footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</div>
+</body>
+</html>

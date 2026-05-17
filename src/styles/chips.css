@@ -1,0 +1,1434 @@
+/* Chip-based composer + chip area + sticky visualizer.
+   Phase 4: lives ABOVE the existing form. Phase 5 will absorb the form. */
+
+/* ===== Section frame =====
+   Lifted one surface tier (--bg-elevated) so the active workspace pops
+   above the page background and the recessed sticky-preview below reads
+   as a different region by contrast. */
+.chip-section {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: var(--gap);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Section heading kept for aria-labelledby; visually hidden so the input
+   dominates the panel. Screen readers still announce the section. */
+.chip-section h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== Chip area ===== */
+.chip-area {
+  min-height: 44px;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.chip-area-empty {
+  margin: 0;
+  padding: 4px 8px;
+  color: var(--fg-muted);
+  font-size: 14px;
+}
+
+/* ===== Chip pill ===== */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px 4px 4px;
+  font-size: 15px;
+  line-height: 1.3;
+  max-width: 100%;
+  transition: border-color 150ms, background 150ms;
+}
+.chip:hover { border-color: var(--accent); }
+
+.chip-text {
+  padding: 2px 8px;
+  word-break: break-word;
+  unicode-bidi: isolate;
+  outline: none;
+  min-width: 96px;
+  cursor: text;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+/* Empty contenteditable spans collapse to a near-invisible cursor by
+   default — give them a clear "this is an input" affordance with a
+   dashed border + placeholder hint so users know to type. */
+.chip-text:empty {
+  border-style: dashed;
+  min-width: 120px;
+}
+.chip-text:empty::before {
+  content: "اكتب هنا…";
+  color: var(--fg-muted);
+  opacity: 0.65;
+  pointer-events: none;
+}
+.chip-text:focus {
+  border-color: var(--accent);
+  border-style: solid;
+  box-shadow: 0 0 0 2px var(--tip-soft);
+}
+.chip-text:focus:empty::before { opacity: 0.45; }
+
+.chip-op-badge {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-inline-start: 2px;
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-weight: 500;
+}
+
+.chip-neg-prefix {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--warning);
+  padding: 0 2px 0 4px;
+  font-weight: 700;
+}
+
+.chip-op-select {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--fg-muted);
+  padding: 2px 4px;
+  cursor: pointer;
+  max-width: 120px;
+}
+.chip-op-select:hover { border-color: var(--accent); color: var(--fg); }
+.chip-op-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.chip-has-op { padding-inline-start: 2px; }
+
+.chip-tools {
+  display: inline-flex;
+  gap: 2px;
+  margin-inline-start: 4px;
+}
+.chip-tool-btn {
+  background: transparent;
+  border: 0;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1;
+  min-width: 24px;
+  min-height: 24px;
+}
+.chip-tool-btn:hover { background: var(--bg); color: var(--fg); }
+.chip-tool-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.chip-tool-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.chip-delete-btn {
+  background: transparent;
+  border: 0;
+  color: var(--fg-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 1;
+  min-width: 28px;
+  min-height: 28px;
+}
+.chip-delete-btn:hover { background: var(--warning-bg); color: var(--warning); }
+.chip-delete-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chip-delete-btn-small { padding: 2px 6px; min-width: 20px; min-height: 20px; font-size: 13px; }
+
+/* Negated chip — red border + darker tone. */
+.chip-negate { border-color: var(--warning); background: var(--warning-bg); color: var(--warning); }
+.chip-negate .chip-text { font-weight: 500; }
+.chip-negate .chip-delete-btn { color: var(--warning); }
+
+/* Quoted chip — accent tint on border + soft fill so the literal-match
+   state is unmistakable at a glance, not just a hairline border swap.
+   Uses --accent-soft (blue 18%) rather than --tip-soft so the visual
+   doesn't collide with the OR-group container's cyan framing — quoting
+   is an "exact match" signal, OR is an "alternation" signal, and they
+   should not share a tint. */
+.chip-quoted {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.chip-quoted .chip-text { font-family: var(--mono); }
+
+/* OR connector — distinct shape (no rounded ends, smaller). */
+.chip-or-connector {
+  background: var(--tip-bg);
+  border-color: var(--tip);
+  color: var(--tip);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.chip-or-text { padding: 0 4px; }
+
+/* The connector text is a button — make it look like a pill, no default
+   button chrome. The whole chip is also clickable as a toggle hint. */
+.chip-bool-toggle {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  min-height: 28px;
+}
+.chip-bool-toggle:hover { background: rgba(255, 255, 255, 0.08); }
+.chip-bool-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* AND-kind connector — different palette so the two states are at-a-glance
+   distinguishable. Uses --accent-soft (blue 18%) so AND reads as "neutral
+   conjunction" in the accent palette while the OR pill keeps the cyan tip
+   palette. Together with .chip-quoted, accent-soft is the canonical fill
+   for "this is in the accent family but quietly subordinate." */
+.chip-bool-and {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ===== Composer ===== */
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.composer-input-row { width: 100%; }
+.composer-input {
+  width: 100%;
+  padding: 16px 18px;
+  font: inherit;
+  font-size: 17px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1.5px solid var(--tip-soft);
+  border-radius: 10px;
+  box-shadow: 0 1px 0 var(--bg-subtle), 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.composer-input::placeholder {
+  font-style: italic;
+  color: var(--fg-muted);
+  opacity: 1;
+}
+.composer-input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 0;
+  border-color: var(--accent);
+  box-shadow: 0 1px 0 var(--bg-subtle), 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+.composer-commit-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.composer-btn {
+  flex: 1;
+  min-width: 100px;
+  min-height: 44px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 16px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms;
+}
+.composer-btn:hover:not(:disabled) { background: var(--bg-subtle); border-color: var(--accent); }
+.composer-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.composer-btn:disabled { background: var(--bg-subtle); color: var(--fg-muted); cursor: not-allowed; opacity: 0.6; }
+
+.composer-btn-and { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.composer-btn-and:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); filter: brightness(1.05); }
+.composer-btn-and:disabled { background: var(--border); color: var(--fg-muted); border-color: var(--border); }
+
+.composer-btn-or { color: var(--tip); border-color: var(--tip); }
+.composer-btn-or:hover:not(:disabled) { background: var(--tip-bg); }
+
+.composer-btn-not { color: var(--warning); border-color: var(--warning); }
+.composer-btn-not:hover:not(:disabled) { background: var(--warning-bg); }
+
+.composer-btn-hint {
+  font-family: var(--mono);
+  font-size: 13px;
+  margin-inline-start: 4px;
+  opacity: 0.85;
+}
+
+/* Composer help text kept for aria-describedby on the input; visually
+   hidden because the input placeholder already carries the same instruction. */
+.composer-hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== Ghost chip preview =====
+   Mirrors what would commit on Enter. Sits between the input and the
+   commit buttons. Hidden when the input is empty. */
+.composer-ghost-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: height 150ms, opacity 150ms;
+}
+.composer-ghost-row.visible {
+  height: 32px;
+  opacity: 0.85;
+}
+.composer-ghost-label {
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+.composer-ghost-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px dashed var(--accent);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 14px;
+  color: var(--fg);
+  font-style: italic;
+  max-width: 100%;
+  word-break: break-word;
+}
+.composer-ghost-chip-negate {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+/* ===== Sticky visualizer (the bottom query bar) ===== */
+.preview-section.preview-section-sticky {
+  position: sticky;
+  bottom: 0;
+  margin-top: 24px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  /* Faint shadow above so users notice it sticks. */
+  box-shadow: 0 -4px 12px -4px rgba(0,0,0,0.4);
+  z-index: 10;
+}
+.preview-section-sticky .preview-heading { display: none; }
+.preview-section-sticky .preview-box {
+  cursor: pointer;
+  user-select: text;
+  position: relative;
+}
+.preview-section-sticky .preview-box:not(.empty):hover {
+  border-color: var(--accent);
+}
+.preview-section-sticky .preview-box:not(.empty)::after {
+  content: '📋';
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 12px;
+  font-size: 14px;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.preview-section-sticky .preview-box:not(.empty):hover::after {
+  opacity: 1;
+}
+
+/* ===== Per-chip warning glyph + popover ===== */
+.chip-warning-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 2px 4px;
+  margin: 0 2px;
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 50%;
+  min-width: 22px;
+  min-height: 22px;
+}
+.chip-warning-glyph-warning {
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+.chip-warning-glyph-tip {
+  color: var(--tip);
+  background: var(--tip-bg);
+}
+.chip-warning-glyph:hover { filter: brightness(0.92); }
+.chip-warning-glyph:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.chip-warning-popover {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 4px;
+  min-width: 240px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.chip-warning-popover-issue {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+.chip-warning-popover-issue + .chip-warning-popover-issue {
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+  padding-top: 10px;
+}
+.chip-warning-popover-issue-warning .chip-warning-popover-icon {
+  color: var(--warning);
+}
+.chip-warning-popover-issue-tip .chip-warning-popover-icon {
+  color: var(--tip);
+}
+.chip-warning-popover-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.chip-warning-popover-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chip-warning-popover-msg {
+  margin: 0;
+  color: var(--fg);
+}
+.chip-warning-popover-fix {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 10px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 32px;
+}
+.chip-warning-popover-fix:hover { filter: brightness(1.05); }
+.chip-warning-popover-fix:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ===== Multi-select ===== */
+/* Selected chip — swap the chip's border to accent and add an inset
+   accent ring so the border reads as a clean 2px without shifting
+   padding. We deliberately do NOT use an outset outline ring: the
+   text-field focus state inside the chip already uses an accent outline,
+   and stacking two accent outlines produces a confused "is this focused
+   or selected?" read. We also do NOT change the background, so this
+   composes cleanly with .chip-quoted (accent-soft fill) and .chip-negate
+   (warning fill) — selected reads on top of the chip's identity, not
+   on top of its colour. */
+.chip-selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.chip-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+.chip-toolbar[hidden] { display: none; }
+.chip-toolbar-count {
+  font-weight: 600;
+  color: var(--accent);
+  margin-inline-end: 4px;
+}
+.chip-toolbar-op-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--fg-muted);
+}
+.chip-toolbar-select {
+  font: inherit;
+  font-size: 14px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--fg);
+  cursor: pointer;
+  min-height: 32px;
+}
+.chip-toolbar-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chip-toolbar-btn {
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--fg);
+  cursor: pointer;
+  min-height: 32px;
+}
+.chip-toolbar-btn:hover { background: var(--bg); border-color: var(--accent); }
+.chip-toolbar-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chip-toolbar-btn-danger {
+  color: var(--warning);
+  border-color: var(--warning);
+}
+.chip-toolbar-btn-danger:hover { background: var(--warning-bg); }
+
+/* ===== Drag-to-reorder (Advanced mode) ===== */
+.chip-draggable {
+  cursor: grab;
+}
+.chip-draggable:active {
+  cursor: grabbing;
+}
+.chip-dragging {
+  opacity: 0.35;
+}
+.chip-area-draggable {
+  /* Slight padding so drop indicators have room to render on chip edges. */
+  padding: 10px;
+}
+.chip-drop-target-before,
+.chip-drop-target-after {
+  position: relative;
+}
+.chip-drop-target-before::before,
+.chip-drop-target-after::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.chip-drop-target-before::before {
+  /* "Before in array order" = the chip's leading edge. Logical properties
+     keep this correct regardless of writing direction. */
+  inset-inline-start: -6px;
+}
+.chip-drop-target-after::after {
+  inset-inline-end: -6px;
+}
+
+/* ===== Wide chips (filetype, date-range, proximity, number-range) ===== */
+.chip-wide {
+  border-radius: 10px;
+  padding: 6px 8px 6px 4px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.chip-wide-inputs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.chip-wide-input-label {
+  font-size: 13px;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.chip-wide-input {
+  font: inherit;
+  font-size: 14px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 32px;
+}
+.chip-wide-input:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+.chip-wide-input-date { width: 140px; }
+.chip-wide-input-term { width: 110px; }
+.chip-wide-input-distance { width: 56px; text-align: center; font-family: var(--mono); }
+.chip-wide-input-num { width: 80px; text-align: center; font-family: var(--mono); }
+.chip-wide-input-prefix { width: 48px; text-align: center; font-family: var(--mono); }
+
+.chip-wide-select {
+  font: inherit;
+  font-size: 14px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 32px;
+  cursor: pointer;
+}
+.chip-wide-select:focus { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ===== Engagement chip — direction toggle ===== */
+.chip-engagement-dir {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+.chip-engagement-dir.is-max {
+  background: var(--tip-soft);
+  color: var(--accent-fg);
+}
+
+/* ===== Filter chip body width ===== */
+.chip-filter .chip-wide-select { min-width: 180px; }
+
+/* ===== `+ إضافة` drawer ===== */
+.composer-btn-add {
+  flex: 0 0 auto;
+  min-width: 96px;
+  background: transparent;
+  color: var(--fg);
+  border: 1px dashed var(--border);
+}
+.composer-btn-add:hover:not(:disabled) {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--bg-subtle);
+}
+
+.drawer-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  min-width: 240px;
+  max-width: 320px;
+  z-index: 100;
+  overflow-y: auto;
+  font-size: 14px;
+}
+.drawer-section { padding: 6px 0; }
+.drawer-section + .drawer-section { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 8px; }
+.drawer-section-heading {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-muted);
+  padding: 4px 10px;
+  font-weight: 600;
+}
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--fg);
+  cursor: pointer;
+  text-align: start;
+  min-height: 36px;
+}
+.drawer-item:hover { background: var(--bg-subtle); }
+.drawer-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.drawer-item-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.drawer-item-label { flex: 1; }
+.drawer-more { padding: 6px 8px; }
+.drawer-more summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--fg-muted);
+  padding: 4px 0;
+  list-style: none;
+}
+.drawer-more summary::before { content: '▸ '; transition: transform 200ms; display: inline-block; }
+.drawer-more[open] summary::before { transform: rotate(90deg); }
+.drawer-more[open] summary { color: var(--fg); }
+
+/* Mobile: stack action buttons. */
+@media (max-width: 600px) {
+  .composer-commit-row { flex-direction: column; }
+  .composer-btn { width: 100%; }
+}
+
+/* === Drawer item shape (A4) === */
+/* Two-line + trailing-edge mono badge. The .drawer-item base rules above
+   provide flex, padding, hover and focus; we override layout to support
+   the two-line text block plus a trailing badge. */
+.drawer-item {
+  align-items: flex-start;
+  padding: 10px 12px;
+  min-height: 52px;
+  gap: 12px;
+}
+.drawer-item-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.drawer-item-label {
+  flex: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg);
+  line-height: 1.3;
+}
+.drawer-item-desc {
+  font-size: 13px;
+  color: var(--fg-muted);
+  line-height: 1.4;
+}
+.drawer-item-badge {
+  flex: 0 0 auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--fg-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  align-self: center;
+  white-space: nowrap;
+}
+.drawer-item:hover .drawer-item-badge,
+.drawer-item:focus-visible .drawer-item-badge {
+  color: var(--fg);
+  border-color: var(--fg-muted);
+}
+.drawer-panel { min-width: 280px; max-width: 360px; }
+
+/* === Popover-above flip (B3) === */
+/* Marker class added to .chip-warning-popover when the popover is flipped
+   above its anchor (instead of below) because the default placement would
+   overflow the viewport. Positioning itself is set inline; this class is a
+   hook for future caret/arrow direction styling. */
+.chip-warning-popover-above {
+  /* No visual change yet — left intentionally minimal. */
+}
+
+/* === Composer redesign (A1+A3) ===
+   New rules added after the redesign. Older composer rules above remain for
+   chip-area / chip-pill / preview styling — these only override what changed
+   for the simplified commit row and the operator-suggestion pills under the
+   ghost preview. */
+
+/* A1 — two-button commit row. The remaining buttons are the primary "أضف"
+   and the dashed "+ إضافة" drawer trigger. Constrain the primary so the
+   trigger doesn't get squished, and make the trigger feel intentional next
+   to it rather than an afterthought. */
+.composer-commit-row .composer-btn-and {
+  flex: 1 1 auto;
+  min-width: 140px;
+}
+.composer-commit-row .composer-btn-add {
+  flex: 0 0 auto;
+  min-width: 120px;
+}
+
+/* A3 — operator-suggestion pills under the ghost preview.
+   The ghost-row was a fixed 32px-high single line; with pills it needs to
+   flex to fit two lines, so override the fixed height. The transition still
+   collapses to 0 height when hidden so empty input doesn't reserve space. */
+.composer-ghost-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.composer-ghost-row.visible {
+  height: auto;
+}
+.composer-ghost-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.composer-ghost-op-badge {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg-subtle);
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+.composer-ghost-neg {
+  font-family: var(--mono);
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.composer-op-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Operator pills + quote toggle share one wrapping row so the literal-match
+   modifier sits next to the operator choice instead of on a row of its own. */
+.composer-op-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.composer-op-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  min-height: 32px;
+  line-height: 1.15;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.composer-op-pill:hover { border-color: var(--accent); background: var(--bg-subtle); }
+.composer-op-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.composer-op-pill[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.composer-op-pill-label { font-weight: 500; }
+.composer-op-pill-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  opacity: 0.75;
+}
+.composer-op-pill[aria-pressed="true"] .composer-op-pill-badge { opacity: 0.85; }
+.composer-op-pill-instant { border-style: dashed; }
+.composer-op-pill-instant:hover { border-style: dashed; border-color: var(--accent); }
+
+/* === Composer quote toggle (Beginner only) ===
+   Independent of the operator pills (orthogonal: any operator + quoted).
+   Sits in its own row below the pills so users read the operator choice
+   first, then the literal-match modifier. Disabled when the chosen
+   operator can't be quoted (site:, inurl:). Advanced users use the
+   leading-and-trailing `"` shortcut and never see this control. */
+.composer-quote-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.composer-quote-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  min-height: 32px;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.composer-quote-toggle:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--bg-subtle);
+}
+.composer-quote-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.composer-quote-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+/* PRESSED-STATE CONVENTIONS
+   Hard style (solid --accent fill + --accent-fg text):
+     "this option is selected from a mutually-exclusive set"
+     — operator pills, engine toggle, language toggle, OR toggle, group filter chips.
+   Soft style (--accent-soft fill + accent text + accent border):
+     "this is a sticky modifier on the next commit"
+     — quote toggle.
+   The two styles must stay distinguishable; do not merge them. */
+.composer-quote-toggle[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+/* === Composer modifier toggles (NOT / OR) ===
+   Living on the same row as the operator pills and quote toggle, separated
+   by a thin vertical hairline. NOT and OR are pre-commit boolean modifiers
+   — distinct semantics from the operator choice (a content operator) and
+   the quote toggle (literal-match wrapping). The single-row layout
+   eliminates a stack of three control rows under the input; the divider
+   is the only chrome we need to keep the two groups legible. */
+.composer-op-row-divider {
+  display: inline-block;
+  align-self: stretch;
+  width: 1px;
+  margin: 4px 4px;
+  background: var(--border);
+}
+.composer-modifier-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  min-height: 32px;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.composer-modifier-toggle:hover { border-color: var(--accent); background: var(--bg-subtle); }
+.composer-modifier-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.composer-modifier-toggle-glyph {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+.composer-modifier-toggle-label { font-weight: 500; }
+/* NOT toggle pressed: amber fill. Distinct from the warning glyph (a
+   smaller bordered badge on a chip) by scale — the toggle fills its
+   whole pill, the glyph is a 22px circular dot. They share the warning
+   palette intentionally: NOT is a "destructive of results" action and
+   the warning palette is the one tokenized signal we have for that. */
+.composer-not-toggle[aria-pressed="true"] {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: var(--bg);
+}
+/* OR toggle pressed: hard accent style — same as operator pills and
+   engine toggle, because pressing OR commits to "use OR for the next
+   chip" (a one-of-set selection). The rendered OR-group container uses
+   the cyan tip palette; the visual mismatch is acceptable because the
+   button is transient (resets after commit) and the group is persistent
+   — the user does not see them side-by-side. */
+.composer-or-toggle[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.composer-ghost-or {
+  font-family: var(--mono);
+  color: var(--accent);
+  font-weight: 600;
+  margin-inline-end: 4px;
+}
+.composer-quote-toggle-glyph {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+.composer-quote-toggle-label { font-weight: 500; }
+.composer-quote-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fg-muted);
+  opacity: 0.85;
+}
+
+/* Ghost-chip quoted styling — accent fill when the pre-commit toggle
+   or the leading/trailing-`"` shortcut is active so the user sees that
+   the term will be wrapped in quotes before pressing Enter. */
+.composer-ghost-chip-quoted {
+  border-color: var(--accent);
+  background: var(--tip-soft);
+  font-family: var(--mono);
+  font-style: normal;
+}
+
+/* === Composer paste-undo (B7) ===
+   The base .toast rule has pointer-events: none so the copy-confirmation
+   doesn't block anything underneath. The undo toast contains an interactive
+   button so re-enable pointer events when the variant class is present, and
+   tighten the layout so the inline button doesn't wrap awkwardly. */
+.toast.toast-with-action {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.toast-undo-btn {
+  background: transparent;
+  color: var(--bg);
+  border: 1px solid var(--bg);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  min-height: 32px;
+}
+.toast-undo-btn:hover { background: var(--bg); color: var(--fg); }
+.toast-undo-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Plain-paste hint sits inside the ghost row. Hidden by default;
+   the JS adds .composer-ghost-row-paste-hint to reveal it for 4s
+   then .composer-ghost-row-paste-hint-fading to fade. */
+.composer-ghost-paste-hint {
+  display: none;
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-muted);
+  padding: 6px 10px;
+  background: var(--bg-subtle);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  line-height: 1.4;
+  transition: opacity 300ms;
+}
+.composer-ghost-row-paste-hint .composer-ghost-paste-hint { display: block; }
+.composer-ghost-row-paste-hint-fading .composer-ghost-paste-hint { opacity: 0; }
+
+/* === OR-group framing (A2) === */
+/* Per-chip "+أو" handle on every keyword chip. Always visible (not
+   hover-only) and tappable on touch (≥24px). Sits at the leading edge of
+   the chip pill via document flow (it's the first child appended). */
+.chip-or-handle {
+  background: transparent;
+  border: 1px dashed var(--tip-soft);
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-width: 32px;
+  min-height: 28px;
+  margin-inline-start: 4px;
+  white-space: nowrap;
+  transition: background 120ms, border-color 120ms, color 120ms, border-style 120ms;
+}
+.chip:hover .chip-or-handle,
+.chip:focus-within .chip-or-handle {
+  color: var(--tip);
+  border-style: solid;
+  border-color: var(--tip);
+}
+.chip-or-handle:hover {
+  background: var(--tip-bg);
+  border-color: var(--tip);
+  color: var(--tip);
+  border-style: solid;
+}
+.chip-or-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* "− ليس" / "− NOT" toggle — visual sibling of .chip-or-handle so the two
+   boolean modifiers read at the same weight on every keyword chip. Warning
+   palette signals exclusion semantics distinct from OR's accent palette.
+   When pressed the button takes a solid filled state so the chip's negate
+   flag is legible without leaning on the small leading "−" prefix. */
+.chip-not-handle {
+  background: transparent;
+  border: 1px dashed var(--warning);
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-width: 32px;
+  min-height: 28px;
+  margin-inline-start: 4px;
+  white-space: nowrap;
+  transition: background 120ms, border-color 120ms, color 120ms, border-style 120ms;
+}
+.chip:hover .chip-not-handle,
+.chip:focus-within .chip-not-handle {
+  color: var(--warning);
+  border-style: solid;
+}
+.chip-not-handle:hover {
+  background: var(--warning-soft);
+  border-color: var(--warning);
+  color: var(--warning);
+  border-style: solid;
+}
+.chip-not-handle[aria-pressed="true"] {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: var(--accent-fg);
+  border-style: solid;
+}
+.chip-not-handle:focus-visible {
+  outline: 2px solid var(--warning);
+  outline-offset: 1px;
+}
+
+/* Container that wraps a contiguous run of [term, OR, term, ...]. The
+   model stays flat — this is render-only chrome.
+
+   Filled tinted block (was: thin dashed rectangle). Reads as a contained
+   "set of alternatives". The leading-edge accent border carries the
+   "this is one logical clause" signal; hovering or focusing any member
+   lifts the whole group so the sibling relationship is obvious. */
+.chip-or-group {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--tip-bg);
+  border: 1px solid var(--tip-soft);
+  border-inline-start: 3px solid var(--tip);
+  border-radius: 8px;
+  position: relative;
+  transition: background 150ms, border-color 150ms, box-shadow 150ms;
+}
+.chip-or-group:hover,
+.chip-or-group:focus-within {
+  border-color: var(--tip);
+  box-shadow: 0 0 0 3px var(--tip-bg);
+}
+
+/* Real-DOM header (replaces the old 10px pseudo-element).
+   Takes the full row via flex-basis so the chips below sit on a fresh
+   line. Beginner mode shows the helper subtitle; Advanced hides it. */
+.chip-or-group-label {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-basis: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tip);
+  margin-bottom: 2px;
+}
+.chip-or-group-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.chip-or-group-label-text { font-weight: 600; }
+/* Helper subtitle — quieter than the group's main "أيٌ مما يلي" label so
+   it teaches without shouting on every group. Matches the AND-seam's
+   subordinate weight (11px / partially transparent). */
+.chip-or-group-label-helper {
+  margin-inline-start: 2px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--fg-muted);
+  opacity: 0.7;
+}
+
+/* Inside-group "أو" — small clear pill, not the near-invisible state it
+   was before. Still visually subordinate to the term chips so eye-flow
+   reads "[term] أو [term]" not "[term] [أو] [term]". */
+.chip-or-group .chip-or-connector {
+  background: var(--bg);
+  border: 1px solid var(--tip-soft);
+  border-radius: 999px;
+  color: var(--tip);
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 1;
+}
+.chip-or-group .chip-or-connector .chip-or-text { padding: 0 2px; }
+.chip-or-group .chip-or-connector .chip-delete-btn,
+.chip-or-group .chip-or-connector .chip-delete-btn-small { display: none; }
+
+/* Trailing "+ بديل آخر" button — single discoverable add affordance per
+   group, replaces the per-member "+أو" handles which clutter once a chip
+   is already inside a group. */
+.chip-or-group-add {
+  background: transparent;
+  border: 1px dashed var(--tip);
+  color: var(--tip);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 999px;
+  min-height: 32px;
+  white-space: nowrap;
+  transition: background 120ms, border-style 120ms;
+}
+.chip-or-group-add:hover {
+  background: var(--bg);
+  border-style: solid;
+}
+.chip-or-group-add:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* === AND seam — small "و" between non-grouped adjacent renderable units.
+   Beginner only: the implicit AND is the most fundamental boolean and
+   making it visible by observation teaches the grammar without changing
+   semantics. Advanced users don't need the chrome and the dense layout
+   suppresses it. */
+.chip-and-seam {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-muted);
+  padding: 0 8px;
+  user-select: none;
+  opacity: 0.55;
+}
+
+/* === Empty-state (simplified) === */
+/* When the chip array is empty, the chip-area renders a single muted hint
+   line. The idiom-panel above the chip section is the primary start-here
+   affordance; the hint line keeps the area from looking broken when empty. */
+.chip-area.chip-area-is-empty {
+  border-color: transparent;
+  background: transparent;
+  padding: 0;
+  display: block;
+}
+.chip-area-empty-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fg-muted);
+  opacity: 0.7;
+  padding: 0 8px;
+  text-align: center;
+  width: 100%;
+}
+
+/* The muted fallback line is hidden — the empty-hint paragraph takes its place. */
+.chip-area > .chip-area-empty { display: none; }
+
+/* === Bridge-flash: chip-section seeded from idiom panel === */
+/* Added to the chip-section's outer container by the idiom-panel module
+   on idiom click; removed ~450ms later. Signals that chips were seeded. */
+.chip-section--just-seeded {
+  box-shadow: 0 0 0 2px var(--tip-soft);
+  transition: box-shadow 200ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-section--just-seeded { transition: none; }
+}
+
+/* === Keyboard reorder hint (B4) === */
+/* Draggable chips get a tabindex in Advanced mode so Alt+Arrow can
+   nudge them. Give the chip itself a visible focus ring distinct from
+   the inner contenteditable's ring so the user can tell which keystroke
+   target they're on. */
+.chip-draggable:focus-visible {
+  outline: 2px dashed var(--accent);
+  outline-offset: 3px;
+}
+
+/* === Preview fragment highlight (A6) ===
+   Each chip's contribution to the assembled preview is wrapped in a
+   .preview-frag span. When a chip is added or focused, chip-area calls
+   preview.highlightChip(id), which adds .preview-frag-active for ~600ms.
+   The flash is the only visual binding between a chip and its piece of
+   the query string — keeps the preview teaching, not just outputting. */
+.preview-frag {
+  display: inline;
+  border-radius: 3px;
+  padding: 0 1px;
+  transition: background-color 600ms ease-out, color 600ms ease-out;
+}
+.preview-frag-active {
+  background-color: var(--tip-soft);
+  color: var(--accent);
+  transition: background-color 80ms ease-in, color 80ms ease-in;
+}
+
+/* ===== Arabic calendar (date-range chip, AR mode) =====
+   Replaces the native <input type="date"> in Arabic mode because native
+   pickers can't be reliably localized. The trigger button mimics the
+   `.chip-wide-input-date` silhouette so the chip stays the same size
+   when the user toggles language. */
+.date-trigger-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.date-trigger {
+  cursor: pointer;
+  text-align: start;
+  padding-inline-end: 24px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.date-trigger:hover { border-color: var(--accent); }
+.date-trigger-label--placeholder {
+  color: var(--fg-muted);
+  font-family: inherit;
+}
+.date-trigger-clear {
+  position: absolute;
+  inset-inline-end: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px; height: 18px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.date-trigger-clear:hover { background: var(--bg-subtle); color: var(--fg); }
+.date-trigger-clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.date-picker-popup {
+  width: 264px;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  color: var(--fg);
+}
+.date-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.date-picker-title {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+  font-size: 15px;
+}
+.date-picker-nav {
+  width: 28px; height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+.date-picker-nav:hover { border-color: var(--accent); color: var(--accent); }
+.date-picker-nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.date-picker-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+.date-picker-weekday {
+  text-align: center;
+  font-size: 12px;
+  color: var(--fg-muted);
+  padding: 4px 0;
+}
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.date-picker-day {
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--fg);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+}
+.date-picker-day:hover { background: var(--bg-subtle); border-color: var(--accent); }
+.date-picker-day:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.date-picker-day--other-month { color: var(--fg-muted); opacity: 0.5; }
+.date-picker-day--today { border-color: var(--tip-soft); }
+.date-picker-day--selected,
+.date-picker-day--selected:hover {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border-color: var(--accent);
+}
